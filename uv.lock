@@ -241,6 +241,7 @@ dependencies = [
     { name = "dotenv" },
     { name = "gradio" },
     { name = "openai-agents", extra = ["litellm"] },
+    { name = "requests" },
 ]
 
 [package.metadata]
@@ -249,6 +250,7 @@ requires-dist = [
     { name = "dotenv", specifier = ">=0.9.9" },
     { name = "gradio", specifier = ">=6.1.0" },
     { name = "openai-agents", extras = ["litellm"], specifier = ">=0.6.2" },
+    { name = "requests", specifier = ">=2.32.5" },
 ]
 
 [[package]]
