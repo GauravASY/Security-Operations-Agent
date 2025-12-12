@@ -6,7 +6,7 @@ from tools import get_list_of_jobs
 
 
 google_model = LitellmModel(
-    model="ollama/gemma3:latest",  # specific LiteLLM model identifier
+    model="ollama/llama3:latest",  # specific LiteLLM model identifier
     base_url="http://localhost:11434",
     api_key="ollama"
 )
