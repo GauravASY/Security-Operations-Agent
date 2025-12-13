@@ -4,7 +4,7 @@ import requests
 @function_tool
 async def get_list_of_jobs(job_title:str, location:str, experience:str, country:str = 'in', employment_type:str = 'FULLTIME'):
     """
-    Returns a JSON list of jobs
+    Returns a list of jobs
     Args:
         job_title (str): The job title to search for
         location (str): The location to search for
