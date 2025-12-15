@@ -26,7 +26,7 @@ async def handleChat(messages, history):
                     response_text += event.data.delta
                     yield response_text
     except Exception as e:
-        yield f"Unexpected exception occured"
+        yield f"Unexpected exception occured \n{e}"
 
 async def main():
     gr.ChatInterface(
