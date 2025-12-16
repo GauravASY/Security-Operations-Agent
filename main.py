@@ -1,9 +1,10 @@
 from agents import Runner, trace, set_tracing_export_api_key
 from openai.types.responses import ResponseTextDeltaEvent
-import asyncio, os
+import asyncio, os, json, re
 from dotenv import load_dotenv
 load_dotenv()
 from agent import career_assistant
+from tools import get_list_of_jobs
 import gradio as gr
 
 tracing_api_key = os.environ["OPENAI_API_KEY"]
@@ -17,16 +18,69 @@ async def handleChat(messages, history):
         conversation_chain.append({'content': messages, 'role': 'user'})
     else:
         conversation_chain = [{"content": messages, "role": "user"}]
-    try:
-        with trace('job assistant workflow'):
-            result = Runner.run_streamed(career_assistant, conversation_chain)
-            response_text = ""
-            async for event in result.stream_events():
-                if event.type == "raw_response_event" and isinstance(event.data, ResponseTextDeltaEvent):
-                    response_text += event.data.delta
-                    yield response_text
-    except Exception as e:
-        yield f"Unexpected exception occured \n{e}"
+    
+    max_turns = 5
+    accumulated_response = ""
+    
+    for _ in range(max_turns):
+        full_turn_response = ""
+        try:
+            with trace('job assistant workflow'):
+                result = Runner.run_streamed(career_assistant, conversation_chain)
+                async for event in result.stream_events():
+                    print("Event :\n", event)
+                    if event.type == "raw_response_event" and isinstance(event.data, ResponseTextDeltaEvent):
+                        chunk = event.data.delta
+                        full_turn_response += chunk
+                        yield accumulated_response + full_turn_response
+                    
+                    # Keep original event handling if needed, but we are primarily looking for the text response matching the tool call
+                    if event.type == "run_item_output_event" and hasattr(event.data, 'output'):
+                         # Fallback if the runner actually handles it but yields output
+                         pass
+                         
+        except Exception as e:
+            yield f"Unexpected exception occured \n{e}"
+            return
+
+        # Check if response is a tool call (JSON list)
+        tool_calls_found = False
+        try:
+            match = re.search(r'(\[.*"get_list_of_jobs".*\])', full_turn_response, re.DOTALL)
+            
+            if match:
+                possible_json = match.group(1)
+                tool_calls = json.loads(possible_json)
+                if isinstance(tool_calls, list):
+                    tool_calls_found = True
+                    accumulated_response += full_turn_response + "\n\n```Executing Tool...```\n\n"
+                    yield accumulated_response
+                    
+                    tool_outputs = []
+                    for call in tool_calls:
+                        if call.get("name") == "get_list_of_jobs":
+                            args = call.get("arguments", {})
+                            try:
+                                if callable(get_list_of_jobs):
+                                     res = await get_list_of_jobs(**args)
+                                else:
+                                     res = "Error: Tool is not callable"
+                            except Exception as tool_err:
+                                res = f"Tool Execution Error: {tool_err}"
+                            
+                            tool_outputs.append(res)
+        
+                    conversation_chain.append({"role": "assistant", "content": full_turn_response})
+                    conversation_chain.append({"role": "user", "content": f"Tool Output: {json.dumps(tool_outputs)}"})
+                    
+        except json.JSONDecodeError:
+            pass
+        except Exception as e:
+            print(f"Error parsing tool call: {e}")
+        
+        if not tool_calls_found:
+            break
+
 
 async def main():
     gr.ChatInterface(
