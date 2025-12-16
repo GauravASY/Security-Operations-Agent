@@ -21,12 +21,9 @@ async def get_list_of_jobs(job_title:str, location:str, experience:str, country:
         "country": country,
         "employment_types": employment_type,
         "job_requirements": experience,
-        "format": "json",
-        "userip": "YOUR_USER_IP",
-        "useragent": "YOUR_USER_AGENT"
     }
     try:
         response = requests.get(url, params=params)
-        return response
+        return response.json()
     except Exception as e:
         return "get_list_of_jobs tool call failed"
