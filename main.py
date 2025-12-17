@@ -12,7 +12,6 @@ tracing_api_key = os.environ["OPENAI_API_KEY"]
 set_tracing_export_api_key(tracing_api_key)
 
 async def handleChat(messages, history):
-    print("history :\n", history)
     
     conversation_chain = []
     if len(messages['text']) > 0:
