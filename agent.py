@@ -4,7 +4,7 @@ from openai import AsyncOpenAI
 from agents.models.openai_chatcompletions import OpenAIChatCompletionsModel
 import os
 from prompt import career_assistant_prompt
-from tools import get_list_of_jobs
+from tools import get_list_of_jobs, search_knowledge_base
 
 set_tracing_disabled(True)
 
@@ -28,5 +28,5 @@ career_assistant = Agent(
     name= "Gaurav",
     instructions= career_assistant_prompt,
     model = custom_model,
-    tools = [get_list_of_jobs]
+    tools = [get_list_of_jobs, search_knowledge_base]
 )
