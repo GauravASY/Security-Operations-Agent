@@ -1,4 +1,5 @@
 from agents import function_tool
+from vectorstore import collection
 import requests
 
 @function_tool
@@ -27,3 +28,21 @@ async def get_list_of_jobs(job_title:str, location:str, experience:str, country:
         return response.json()
     except Exception as e:
         return "get_list_of_jobs tool call failed"
+
+
+@function_tool
+def search_knowledge_base(query: str) -> str:
+    """
+    Search the local knowledge base for information.
+    Use this tool when the user asks questions about the uploaded PDF or documents.
+    """
+    
+    # Query ChromaDB
+    results = collection.query(
+        query_texts=[query],
+        n_results=4 # Return top 3 matches
+    )
+    
+    # Format results as a single string for the Agent
+    found_text = "\n\n".join(results['documents'][0])
+    return found_text
