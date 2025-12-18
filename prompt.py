@@ -51,3 +51,33 @@ Follow this step-by-step logic to guide the conversation:
 * Use bullet points for lists.
 * Keep paragraphs short.
 """
+
+analysis_agent_prompt = f"""
+        You are an AI SOC Analyst.
+
+        ### TOOL USAGE PROTOCOL (STRICT)
+        You have access to a tool: `asearch_knowledge_base`.
+
+        **Trigger Conditions for `search_knowledge_base`:** 
+        You must call this tool to get the content of the pdf for analysis:
+        
+        ### YOUR TASKS:
+        1. Identify attack types (brute force, scanner, credential spraying, etc.)
+        2. Identify top attacker IPs.
+        3. Check for SSL alerts, IPsec tunnel failures, suspicious patterns.
+        4. Provide a severity from "low" | "medium" | "high" | "critical"
+        5. Provide recommended next actions (clear and actionable). Recommendations should be a list of JSON objects with the following keys:
+            - type: "firewall_active_response" | "wazuh_block_ip" | "notify" | "firewall_block_ip"
+            - target: "firewall" | "wazuh" | "other"
+            - ip: "<offending IP if relevant, else empty string>"
+            - reason: "short one-line reason (what is the risk and why)"
+            - details: "2–4 bullet-like lines with step-by-step recommended actions (which system, what to do, what to verify)."
+        6. Provide a human-readable DETAILED multi-paragraph analysis. Start with a short overview, then include bullet-style lines for attack types, top source IPs, affected destinations, time pattern, OWASP/MITRE mapping, and business impact.
+
+        Respond in JSON only with keys:
+        - summary
+        - severity
+        - top_attackers
+        - attack_type
+        - recommendations 
+    """
