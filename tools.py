@@ -34,7 +34,7 @@ async def get_list_of_jobs(job_title:str, location:str, experience:str, country:
 def search_knowledge_base(query: str) -> str:
     """
     Search the local knowledge base for information.
-    Use this tool when the user asks questions about the uploaded PDF or documents.
+    Use this tool when the user asks questions about the uploaded text files.
     """
     
     # Query ChromaDB
