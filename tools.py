@@ -40,9 +40,10 @@ def search_knowledge_base(query: str) -> str:
     # Query ChromaDB
     results = collection.query(
         query_texts=[query],
-        n_results=4 # Return top 3 matches
+        n_results=3 # Return top 3 matches
     )
-    
+    print("Results : \n", results)
     # Format results as a single string for the Agent
     found_text = "\n\n".join(results['documents'][0])
+    print("Found Text : \n", found_text)
     return found_text
