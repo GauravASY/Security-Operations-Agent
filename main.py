@@ -13,8 +13,8 @@ tracing_api_key = os.environ["OPENAI_API_KEY"]
 set_tracing_export_api_key(tracing_api_key)
 
 async def handleChat(messages, history):
-    print("history:\n", history)
-    print("messages:\n", messages)
+   # print("history:\n", history)
+   # print("messages:\n", messages)
 
     conversation_chain = []
     if len(messages['text']) > 0:
@@ -62,7 +62,7 @@ async def handleChat(messages, history):
             # Check if response is a tool call (JSON list)
             tool_calls_found = False
             try:
-                match = re.search(r'(\[.*"get_list_of_jobs".*\])', full_turn_response, re.DOTALL)
+                match = re.search(r'(\[.*"get_list_of_jobs".*\]|\[.*"search_knowledge_base".*\])', full_turn_response, re.DOTALL)
                 
                 if match:
                     possible_json = match.group(1)
@@ -85,6 +85,19 @@ async def handleChat(messages, history):
                                     res = f"Tool Execution Error: {tool_err}"
                                 
                                 tool_outputs.append(res)
+                            
+                            if call.get("name") == "search_knowledge_base":
+                                args = call.get("arguments", {})
+                                try:
+                                    if callable(search_knowledge_base):
+                                        res = await search_knowledge_base(**args)
+                                    else:
+                                        res = "Error: Tool is not callable"
+                                except Exception as tool_err:
+                                    res = f"Tool Execution Error: {tool_err}"
+                                
+                                tool_outputs.append(res)
+                            
             
                         conversation_chain.append({"role": "assistant", "content": full_turn_response})
                         conversation_chain.append({"role": "user", "content": f"Tool Output: {json.dumps(tool_outputs)}"})
