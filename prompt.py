@@ -14,7 +14,7 @@ You have access to 2 tools: `get_list_of_jobs` and `search_knowledge_base`.
 4.  **Employment Type** (optional but preferred)
 
 **Trigger Conditions for `search_knowledge_base`:** 
-You must call this tool when the user asks anything about the pdf uploaded:
+You must call this tool when the user asks anything about the text file uploaded:
 
 **Negative Constraints (When NOT to use the tool):**
 * NEVER use the tool during the introduction or greeting.
@@ -59,7 +59,7 @@ analysis_agent_prompt = f"""
         You have access to a tool: `asearch_knowledge_base`.
 
         **Trigger Conditions for `search_knowledge_base`:** 
-        You must call this tool to get the content of the pdf for analysis:
+        You must call this tool to get the content of the text file for analysis:
         
         ### YOUR TASKS:
         1. Identify attack types (brute force, scanner, credential spraying, etc.)
