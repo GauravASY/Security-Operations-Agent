@@ -18,7 +18,6 @@ def ingest_txt(file_path, s3_url):
         text = [doc.text for doc in document]
         print("Text : \n", text)
         if len(text) > 0:
-            print("Adding to collection")
             collection.add(
                 documents=text,
                 metadatas=[{"source": file_path, "s3_url": s3_url}],
