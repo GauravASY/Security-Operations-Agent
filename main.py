@@ -5,7 +5,8 @@ from dotenv import load_dotenv
 load_dotenv()
 from agent import career_assistant
 from tools import get_list_of_jobs
-from vectorstore import ingest_pdf
+from vectorstore import ingest_txt
+from utils import upload_file_to_s3
 import gradio as gr
 
 tracing_api_key = os.environ["OPENAI_API_KEY"]
@@ -31,9 +32,10 @@ async def handleChat(messages, history):
     accumulated_response = ""
     if len(messages['files']) > 0:
         for file in messages['files']:
-            if file.endswith('.pdf'):
-                result = ingest_pdf(file)
-                accumulated_response += "```Pdf Processed``` \n"
+            if file.endswith('.txt'):
+                s3_response = upload_file_to_s3(file, os.environ.get("S3_BUCKET_NAME"))
+                result = ingest_txt(file, s3_response)
+                accumulated_response += "```File Processed``` \n"
                 yield accumulated_response   
         
     if len(messages['text']) > 0:
@@ -104,7 +106,7 @@ async def main():
         fill_height=True,
         save_history=True,
         multimodal=True,
-        textbox=gr.MultimodalTextbox(file_count="multiple", file_types=[".pdf"], sources=["upload"])
+        textbox=gr.MultimodalTextbox(file_count="multiple", file_types=[".txt"], sources=["upload"])
     ).launch(footer_links=[])
         
 
