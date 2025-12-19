@@ -30,7 +30,7 @@ custom_model = OpenAIChatCompletionsModel(
 analysis_agent = Agent(
     name= "Analysis Agent",
     instructions= analysis_agent_prompt,
-    handoff_description="Handles analyses of the pdf for threats and provides recommendations",
+    handoff_description="Handles analysis of the uploaded text files for threats and provides recommendations",
     model = custom_model,
     tools = [search_knowledge_base]
 )
@@ -41,7 +41,7 @@ career_assistant = Agent(
     handoffs=[
         handoff(
             agent=analysis_agent,
-            tool_name_override="analyze_pdf",
+            tool_name_override="analyze_text_file",
             on_handoff = log_analyses_handoff
         )
     ],
