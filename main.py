@@ -4,7 +4,7 @@ import asyncio, os, json, re
 from dotenv import load_dotenv
 load_dotenv()
 from agent import career_assistant
-from tools import get_list_of_jobs
+from tools import get_list_of_jobs, search_knowledge_base
 from vectorstore import ingest_txt
 from utils import upload_file_to_s3
 import gradio as gr
