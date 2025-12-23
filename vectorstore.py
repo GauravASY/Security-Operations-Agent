@@ -10,6 +10,7 @@ emb_fn = OllamaEmbeddingFunction(
     model_name="mxbai-embed-large:335m"
 )
 collection = client.get_or_create_collection(name="pdf_knowledge_base_v2", embedding_function=emb_fn)
+collection = client.get_or_create_collection(name="identifiers_and_iocs", embedding_function=emb_fn)
 # another collection for Identifiers and IOCs
 
 def ingest_txt(file_path, s3_url):
