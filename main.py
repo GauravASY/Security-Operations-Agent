@@ -7,7 +7,9 @@ from agent import career_assistant
 from tools import get_list_of_jobs, search_knowledge_base
 from vectorstore import ingest_txt
 from utils import upload_file_to_s3
+from database import init_db
 import gradio as gr
+
 
 tracing_api_key = os.environ["OPENAI_API_KEY"]
 set_tracing_export_api_key(tracing_api_key)
@@ -112,6 +114,7 @@ async def handleChat(messages, history):
 
 
 async def main():
+    init_db()
     gr.ChatInterface(
         fn=handleChat,
         title="CERT SIEM POC v2",
