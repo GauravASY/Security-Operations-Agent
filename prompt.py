@@ -82,3 +82,7 @@ analysis_agent_prompt = f"""
         - attack_type
         - recommendations 
     """
+
+extraction_agent_prompt = """
+    You are a Tier 3 SOC Analyst. Extract strict intelligence from this SIEM report.
+"""
