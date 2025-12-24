@@ -3,7 +3,7 @@ from openai.types.responses import ResponseTextDeltaEvent
 import asyncio, os, json, re
 from dotenv import load_dotenv
 load_dotenv()
-from agent import career_assistant
+from llmAgent import career_assistant
 from tools import get_list_of_jobs, search_knowledge_base
 from vectorstore import ingest_txt
 from utils import upload_file_to_s3
@@ -36,7 +36,7 @@ async def handleChat(messages, history):
         for file in messages['files']:
             if file.endswith('.txt'):
                 s3_response = upload_file_to_s3(file, os.environ.get("S3_BUCKET_NAME"))
-                result = ingest_txt(file, s3_response)
+                result = await ingest_txt(file, s3_response)
                 accumulated_response += "```File Processed``` \n"
                 yield accumulated_response   
         
