@@ -12,6 +12,8 @@ dependencies = [
     "gradio>=6.1.0",
     "ollama>=0.6.1",
     "openai-agents[litellm]>=0.6.2",
+    "psycopg2>=2.9.11",
+    "pydantic>=2.12.4",
     "requests>=2.32.5",
     "unstructured[all-docs]>=0.18.21",
 ]
