@@ -1,6 +1,5 @@
 import boto3
 from botocore.exceptions import ClientError
-import os
 
 
 def upload_file_to_s3(file_name, bucket_name, object_name = None):
