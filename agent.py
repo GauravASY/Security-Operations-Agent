@@ -5,18 +5,33 @@ from agents.models.openai_chatcompletions import OpenAIChatCompletionsModel
 import os
 from prompt import career_assistant_prompt, analysis_agent_prompt
 from tools import get_list_of_jobs, search_knowledge_base
+from typing import List, Optional
+from pydantic import BaseModel, Field
 
 set_tracing_disabled(True)
+
+# --- 1. Define the "Digital Form" the LLM must fill ---
+class Indicator(BaseModel):
+    value: str = Field(..., description="The IoC value (e.g., 185.199.110.153)")
+    type: str = Field(..., description="Type of IoC: IP, Domain, Hash, URL")
+
+class TTP(BaseModel):
+    technique_id: str = Field(..., description="MITRE ATT&CK ID (e.g., T1059)")
+    name: str = Field(..., description="Technique name (e.g., PowerShell)")
+
+class ReportExtraction(BaseModel):
+    summary: str = Field(..., description="Brief summary of the incident")
+    severity: str = Field(..., description="High, Medium, or Low")
+    victim_sector: str = Field(..., description="e.g. Finance, Healthcare")
+    timeline_start: Optional[str] = Field(description="ISO timestamp of start")
+    timeline_end: Optional[str] = Field(description="ISO timestamp of end")
+    iocs: List[Indicator]
+    ttps: List[TTP]
+
 
 def log_analyses_handoff(context):
     yield "```Delegating Analyses to Analysis Agent```\n\n"
 
-#keeping this model for testing purposes.
-google_model = LitellmModel(
-    model="ollama/llama3:latest",  # specific LiteLLM model identifier
-    base_url="http://localhost:11434",
-    api_key="ollama"
-)
 custom_client = AsyncOpenAI(
     base_url=os.environ.get("LMAAS_URL"),
     api_key=os.environ.get("LMAAS_KEY"),
