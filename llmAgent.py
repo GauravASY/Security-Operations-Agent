@@ -30,7 +30,7 @@ class ReportExtraction(BaseModel):
 
 
 def log_analyses_handoff(context):
-    yield "```Delegating Analyses to Analysis Agent```\n\n"
+    yield "```Delegating Extraction to Extraction Agent```\n"
 
 custom_client = AsyncOpenAI(
     base_url=os.environ.get("LMAAS_URL"),
