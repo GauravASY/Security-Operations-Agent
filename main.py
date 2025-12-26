@@ -117,7 +117,7 @@ async def main():
     init_db()
     gr.ChatInterface(
         fn=handleChat,
-        title="CERT SIEM POC v2",
+        title="CERT SIEM POC v2.5",
         autoscroll=True,
         fill_height=True,
         save_history=True,
