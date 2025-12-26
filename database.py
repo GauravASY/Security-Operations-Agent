@@ -40,6 +40,7 @@ def init_db():
     cur = conn.cursor()
     
     # Define the Schema (Using IF NOT EXISTS for safety)
+    # Remove the raw_content column. No need to store the raw content in the database as report is stored in S3.
     table_schema = """
     -- 1. Reports Table
     CREATE TABLE IF NOT EXISTS reports (
@@ -50,7 +51,7 @@ def init_db():
         victim_sector VARCHAR(100),
         timeline_start TIMESTAMP,
         timeline_end TIMESTAMP,
-        raw_content TEXT,
+        raw_content TEXT,   
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
