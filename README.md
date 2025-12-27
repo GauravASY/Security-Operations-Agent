@@ -1,6 +1,6 @@
-# CERT SIEM POC v2
+# Security Operations Chatbot
 
-**Cert-SIEM-POC-v2** is a Proof of Concept demonstrating a multi-agent AI system designed for security operations. It combines a conversational interface with specialized agents capable of analyzing unstructured security logs, extracting threat intelligence, and mapping behaviors to MITRE ATT&CK TTPs.
+**Security Operations Chatbot** is a Proof of Concept demonstrating a multi-agent AI system designed for security operations. It combines a conversational interface with specialized agents capable of analyzing unstructured security logs, extracting threat intelligence, and mapping behaviors to MITRE ATT&CK TTPs.
 
 ## 🚀 Key Features
 
