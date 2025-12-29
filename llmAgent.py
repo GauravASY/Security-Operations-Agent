@@ -3,8 +3,8 @@ from agents.extensions.models.litellm_model import LitellmModel
 from openai import AsyncOpenAI
 from agents.models.openai_chatcompletions import OpenAIChatCompletionsModel
 import os
-from prompt import career_assistant_prompt, analysis_agent_prompt, extraction_agent_prompt
-from tools import get_list_of_jobs, search_knowledge_base
+from prompt import career_assistant_prompt, extraction_agent_prompt
+from tools import search_knowledge_base
 from typing import List, Optional
 from pydantic import BaseModel, Field
 
@@ -61,5 +61,5 @@ career_assistant = Agent(
         )
     ],
     model = custom_model,
-    tools = [get_list_of_jobs, search_knowledge_base]
+    tools = [search_knowledge_base]
 )
