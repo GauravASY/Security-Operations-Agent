@@ -37,7 +37,10 @@ async def handleChat(messages, history):
             if file.endswith('.txt'):
                 s3_response = upload_file_to_s3(file, os.environ.get("S3_BUCKET_NAME"))
                 result = await ingest_txt(file, s3_response)
-                accumulated_response += "```File Processed``` \n"
+                if result['success']:
+                    accumulated_response += "```File Processed``` \n"
+                else:
+                    accumulated_response += "```File Processing Failed``` \n"
                 yield accumulated_response   
         
     if len(messages['text']) > 0:
