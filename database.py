@@ -49,8 +49,8 @@ def init_db():
         summary TEXT,
         severity VARCHAR(50),
         victim_sector VARCHAR(100),
-        timeline_start TIMESTAMP,
-        timeline_end TIMESTAMP,
+        timeline_start VARCHAR(100),
+        timeline_end VARCHAR(100),
         raw_content TEXT,   
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
