@@ -1,6 +1,14 @@
 from agents import function_tool
 from vectorstore import collection
 import requests
+import psycopg2
+import json
+import chromadb
+from database import DB_CONFIG, TARGET_DB
+
+# Connect to DBs
+chroma_client = chromadb.PersistentClient(path="./my_local_db")
+collection = chroma_client.get_or_create_collection(name="pdf_knowledge_base_v2")
 
 @function_tool
 async def get_list_of_jobs(job_title:str, location:str, experience:str, country:str = 'in', employment_type:str = 'FULLTIME'):
@@ -40,10 +48,47 @@ def search_knowledge_base(query: str) -> str:
     # Query ChromaDB
     results = collection.query(
         query_texts=[query],
-        n_results=12 # Return top 12 matches
+        n_results=8 # Return top 8 matches
     )
-    print("Results : \n", results)
-    # Format results as a single string for the Agent
-    found_text = "\n\n".join(results['documents'][0])
-    print("Found Text : \n", found_text)
-    return found_text
+    found = []
+    # Combine the IDs and Documents into a readable string for the LLM
+    if results['ids']:
+        for i, doc in enumerate(results['documents'][0]):
+            rid = results['ids'][0][i]
+            print("RID : ", rid)
+            found.append(f"[Report ID: {rid}] Content Snippet: {doc[:300]}...")
+            
+    return "\n".join(found) if found else "No related reports found."
+
+
+def get_db_connection():
+    return psycopg2.connect(dbname=TARGET_DB, **DB_CONFIG)
+
+# --- Tool 1: SQL Lookup for IoCs ---
+@function_tool
+def search_indicators_by_report(report_id: int):
+    """Fetch all IoCs associated with a specific report ID."""
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT type, value FROM iocs WHERE report_id = %s", (report_id,))
+        results = cur.fetchall()
+        if not results:
+            return "No indicators found for this report."
+        return json.dumps([{"type": r[0], "value": r[1]} for r in results])
+    finally:
+        conn.close()
+
+
+# --- Tool 3: SQL Filtering by Sector ---
+@function_tool
+def search_by_victim(sector: str):
+    """Find reports targeting a specific sector."""
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT report_id, summary, created_at FROM reports WHERE victim_sector ILIKE %s", (f"%{sector}%",))
+        results = cur.fetchall()
+        return str(results)
+    finally:
+        conn.close()
