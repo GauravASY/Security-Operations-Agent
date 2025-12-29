@@ -19,7 +19,6 @@ async def ingest_txt(file_path, s3_url):
     from llmAgent import extraction_assistant
     try:
         document = partition_text(filename=file_path)
-        print("Reached line 19 in ingest_txt")
         content = ""
         text=[]
         for doc in document:
@@ -60,10 +59,12 @@ async def ingest_txt(file_path, s3_url):
                 ids=[str(uuid.uuid4()) for _ in range(len(text))]
             )
             print(f"--> Successfully ingested Report ID: {report_id}")
+            return {"success" : True}
         
     except Exception as e:
         print(f"Error ingesting {file_path}: {e}")
         conn.rollback()
+        return {"success" : False}
     finally:
         conn.close()
     
