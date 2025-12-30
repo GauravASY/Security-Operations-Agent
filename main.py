@@ -4,7 +4,7 @@ import asyncio, os, json, re
 from dotenv import load_dotenv
 load_dotenv()
 from llmAgent import career_assistant
-from tools import get_list_of_jobs, search_knowledge_base
+from tools import get_file_content, search_indicators_by_report, search_by_victim
 from vectorstore import ingest_txt
 from utils import upload_file_to_s3
 from database import init_db
@@ -38,9 +38,9 @@ async def handleChat(messages, history):
                 s3_response = upload_file_to_s3(file, os.environ.get("S3_BUCKET_NAME"))
                 result = await ingest_txt(file, s3_response)
                 if result['success']:
-                    accumulated_response += "```File Processed``` \n"
+                    accumulated_response += f"```{result['message']}``` \n"
                 else:
-                    accumulated_response += "```File Processing Failed``` \n"
+                    accumulated_response += f"```{result['message']}``` \n"
                 yield accumulated_response   
         
     if len(messages['text']) > 0:
@@ -67,7 +67,7 @@ async def handleChat(messages, history):
             # Check if response is a tool call (JSON list)
             tool_calls_found = False
             try:
-                match = re.search(r'(\[.*"get_list_of_jobs".*\]|\[.*"search_knowledge_base".*\])', full_turn_response, re.DOTALL)
+                match = re.search(r'(\[.*"get_file_content".*\]|\[.*"search_indicators_by_report".*\]|\[.*"search_by_victim".*\])', full_turn_response, re.DOTALL)
                 
                 if match:
                     possible_json = match.group(1)
@@ -79,11 +79,11 @@ async def handleChat(messages, history):
                         
                         tool_outputs = []
                         for call in tool_calls:
-                            if call.get("name") == "get_list_of_jobs":
+                            if call.get("name") == "search_indicators_by_report":
                                 args = call.get("arguments", {})
                                 try:
-                                    if callable(get_list_of_jobs):
-                                        res = await get_list_of_jobs(**args)
+                                    if callable(search_indicators_by_report):
+                                        res = await search_indicators_by_report(**args)
                                     else:
                                         res = "Error: Tool is not callable"
                                 except Exception as tool_err:
@@ -91,11 +91,21 @@ async def handleChat(messages, history):
                                 
                                 tool_outputs.append(res)
                             
-                            if call.get("name") == "search_knowledge_base":
+                            if call.get("name") == "get_file_content":
                                 args = call.get("arguments", {})
                                 try:
-                                    if callable(search_knowledge_base):
-                                        res = await search_knowledge_base(**args)
+                                    if callable(get_file_content):
+                                        res = await get_file_content(**args)
+                                    else:
+                                        res = "Error: Tool is not callable"
+                                except Exception as tool_err:
+                                    res = f"Tool Execution Error: {tool_err}"
+                            
+                            if call.get("name") == "search_by_victim":
+                                args = call.get("arguments", {})
+                                try:
+                                    if callable(search_by_victim):
+                                        res = await search_by_victim(**args)
                                     else:
                                         res = "Error: Tool is not callable"
                                 except Exception as tool_err:
