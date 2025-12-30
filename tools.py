@@ -39,26 +39,24 @@ async def get_list_of_jobs(job_title:str, location:str, experience:str, country:
 
 
 @function_tool
-def search_knowledge_base(query: str) -> str:
+def search_knowledge_base(query: str, filename:str) -> str:
     """
-    Search the local knowledge base for information.
-    Use this tool when the user asks questions about the uploaded text files.
+    Search the local knowledge base for information about a specific file.
+    Use this tool when the user asks questions about the uploaded text file.
     """
-    
+    print("Filename : ", filename)
     # Query ChromaDB
     results = collection.query(
         query_texts=[query],
-        n_results=8 # Return top 8 matches
+        where={"filename": {"$eq": filename}},
+        n_results=5 # Return top 5 matches
     )
-    found = []
     # Combine the IDs and Documents into a readable string for the LLM
-    if results['ids']:
-        for i, doc in enumerate(results['documents'][0]):
-            rid = results['ids'][0][i]
-            print("RID : ", rid)
-            found.append(f"[Report ID: {rid}] Content Snippet: {doc[:300]}...")
-            
-    return "\n".join(found) if found else "No related reports found."
+    print("Results : \n", results)
+    # Format results as a single string for the Agent
+    found_text = "\n\n".join(results['documents'][0])
+    print("Found Text : \n", found_text)
+    return found_text
 
 
 def get_db_connection():
@@ -66,7 +64,7 @@ def get_db_connection():
 
 # --- Tool 1: SQL Lookup for IoCs ---
 @function_tool
-def search_indicators_by_report(report_id: int):
+async def search_indicators_by_report(report_id: int):
     """Fetch all IoCs associated with a specific report ID."""
     conn = get_db_connection()
     cur = conn.cursor()
@@ -80,9 +78,9 @@ def search_indicators_by_report(report_id: int):
         conn.close()
 
 
-# --- Tool 3: SQL Filtering by Sector ---
+# --- Tool 2: SQL Filtering by Sector ---
 @function_tool
-def search_by_victim(sector: str):
+async def search_by_victim(sector: str):
     """Find reports targeting a specific sector."""
     conn = get_db_connection()
     cur = conn.cursor()
@@ -90,5 +88,21 @@ def search_by_victim(sector: str):
         cur.execute("SELECT report_id, summary, created_at FROM reports WHERE victim_sector ILIKE %s", (f"%{sector}%",))
         results = cur.fetchall()
         return str(results)
+    finally:
+        conn.close()
+
+@function_tool
+async def get_file_content(filename: str):
+    """Fetch the content and summary of a specific file."""
+    name = filename.split("\\")[-1]
+    print("Filename : ", name)
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT raw_content, summary FROM reports WHERE filename = %s", (name,))
+        result = cur.fetchone()
+        if not result:
+            return "File not found."
+        return result
     finally:
         conn.close()
