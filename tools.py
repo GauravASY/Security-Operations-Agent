@@ -85,7 +85,7 @@ async def search_by_victim(sector: str):
     conn = get_db_connection()
     cur = conn.cursor()
     try:
-        cur.execute("SELECT report_id, summary, created_at FROM reports WHERE victim_sector ILIKE %s", (f"%{sector}%",))
+        cur.execute("SELECT report_id, filename, summary, created_at FROM reports WHERE victim_sector ILIKE %s", (f"%{sector}%",))
         results = cur.fetchall()
         return str(results)
     finally:
