@@ -13,6 +13,8 @@ You MUST CALL this tool when the user asks anything about files with a specific 
 
 **Trigger Conditions for `search_by_victim`:** 
 You MUST CALL this tool when the user asks anything about files with a specific victim sector.
+**Output Format for `search_by_victim`:** 
+You Must return the filename, summary and created_at date of the report.
 
 **Trigger Conditions for `get_file_content`:** 
 You MUST CALL this tool when the user asks anything about the content or the summary of a specific file.
