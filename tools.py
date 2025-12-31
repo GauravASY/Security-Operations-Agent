@@ -106,3 +106,18 @@ async def get_file_content(filename: str):
         return result
     finally:
         conn.close()
+
+#search by technique
+@function_tool
+async def search_by_technique(technique: str):
+    """Find reports associated with a specific technique."""
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT report_id, technique_name FROM ttps WHERE technique_id ILIKE %s", (f"%{technique}%",))
+        results = cur.fetchall()
+        if not results:
+            return "No reports found for this technique."
+        return str(results)
+    finally:
+        conn.close()
