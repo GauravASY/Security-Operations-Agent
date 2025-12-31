@@ -91,6 +91,7 @@ async def search_by_victim(sector: str):
     finally:
         conn.close()
 
+# --- Tool 3: Getting File Content by File Name ---
 @function_tool
 async def get_file_content(filename: str):
     """Fetch the content and summary of a specific file."""
@@ -107,9 +108,9 @@ async def get_file_content(filename: str):
     finally:
         conn.close()
 
-#search by technique
+# --- Tool 4: Getting Reports ID by Technique name ---
 @function_tool
-async def search_by_technique(technique: str):
+async def get_reportsID_by_technique(technique: str):
     """Find reports associated with a specific technique."""
     conn = get_db_connection()
     cur = conn.cursor()
