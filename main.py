@@ -4,7 +4,7 @@ import asyncio, os, json, re
 from dotenv import load_dotenv
 load_dotenv()
 from llmAgent import career_assistant
-from tools import get_file_content, search_indicators_by_report, search_by_victim
+from tools import get_file_content, search_indicators_by_report, search_by_victim, get_reportsID_by_technique, get_reports_by_reportID
 from vectorstore import ingest_txt
 from utils import upload_file_to_s3
 from database import init_db
@@ -70,7 +70,7 @@ async def handleChat(messages, history):
                 # Check if response is a tool call (JSON list)
                 tool_calls_found = False
                 try:
-                    match = re.search(r'(\[.*"get_file_content".*\]|\[.*"search_indicators_by_report".*\]|\[.*"search_by_victim".*\])', full_turn_response, re.DOTALL)
+                    match = re.search(r'(\[.*"get_file_content".*\]|\[.*"search_indicators_by_report".*\]|\[.*"search_by_victim".*\]|\[.*"get_reportsID_by_technique".*\]|\[.*"get_reports_by_reportID".*\])', full_turn_response, re.DOTALL)
                     
                     if match:
                         possible_json = match.group(1)
@@ -126,6 +126,17 @@ async def handleChat(messages, history):
                                     
                                     tool_outputs.append(res)
                                 
+                                if call.get("name") == "get_reports_by_reportID":
+                                    args = call.get("arguments", {})
+                                    try:
+                                        if callable(get_reports_by_reportID):
+                                            res = await get_reports_by_reportID(**args)
+                                        else:
+                                            res = "Error: Tool is not callable"
+                                    except Exception as tool_err:
+                                        res = f"Tool Execution Error: {tool_err}"
+                                    
+                                    tool_outputs.append(res)
                 
                             conversation_chain.append({"role": "assistant", "content": full_turn_response})
                             conversation_chain.append({"role": "user", "content": f"Tool Output: {json.dumps(tool_outputs)}"})
