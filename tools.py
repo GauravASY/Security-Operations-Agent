@@ -111,7 +111,8 @@ async def get_file_content(filename: str):
 # --- Tool 4: Getting Reports ID by Technique name ---
 @function_tool
 async def get_reportsID_by_technique(technique: str):
-    """Find reports associated with a specific technique."""
+    """Find reports affected by a specific technique."""
+    print("Technique : ", technique)
     conn = get_db_connection()
     cur = conn.cursor()
     try:
@@ -120,5 +121,20 @@ async def get_reportsID_by_technique(technique: str):
         if not results:
             return "No reports found for this technique."
         return str(results)
+    finally:
+        conn.close()
+
+# --- Tool 5: Getting reports by report ID ---
+@function_tool
+def get_reports_by_reportID(report_id: int):
+    """Find reports by report ID."""
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute(" SELECT * from reports WHERE report_id = %s", (report_id,))
+        result = cur.fetchone()
+        if not result:
+            return "Report not found."
+        return result
     finally:
         conn.close()
