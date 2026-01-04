@@ -4,7 +4,7 @@ from openai import AsyncOpenAI
 from agents.models.openai_chatcompletions import OpenAIChatCompletionsModel
 import os
 from prompt import career_assistant_prompt, extraction_agent_prompt
-from tools import search_knowledge_base, search_indicators_by_report, search_by_victim, get_file_content, get_reportsID_by_technique
+from tools import search_knowledge_base, search_indicators_by_report, search_by_victim, get_file_content, get_reportsID_by_technique, get_reports_by_reportID
 from typing import List, Optional
 from pydantic import BaseModel, Field
 
@@ -61,5 +61,5 @@ career_assistant = Agent(
         )
     ],
     model = custom_model,
-    tools = [search_indicators_by_report, search_by_victim, get_file_content, get_reportsID_by_technique]
+    tools = [search_indicators_by_report, search_by_victim, get_file_content, get_reportsID_by_technique, get_reports_by_reportID]
 )
