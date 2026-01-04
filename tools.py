@@ -65,7 +65,7 @@ def get_db_connection():
 # --- Tool 1: SQL Lookup for IoCs ---
 @function_tool
 async def search_indicators_by_report(report_id: int):
-    """Fetch all IoCs associated with a specific report ID."""
+    """Fetches all IoCs associated with a specific report ID."""
     conn = get_db_connection()
     cur = conn.cursor()
     try:
@@ -81,7 +81,7 @@ async def search_indicators_by_report(report_id: int):
 # --- Tool 2: SQL Filtering by Sector ---
 @function_tool
 async def search_by_victim(sector: str):
-    """Find reports targeting a specific sector."""
+    """Finds the reports targeting a specific sector."""
     conn = get_db_connection()
     cur = conn.cursor()
     try:
@@ -94,7 +94,7 @@ async def search_by_victim(sector: str):
 # --- Tool 3: Getting File Content by File Name ---
 @function_tool
 async def get_file_content(filename: str):
-    """Fetch the content and summary of a specific file."""
+    """Fetches the content and summary of a specific file using filename."""
     name = filename.split("\\")[-1]
     print("Filename : ", name)
     conn = get_db_connection()
@@ -111,13 +111,14 @@ async def get_file_content(filename: str):
 # --- Tool 4: Getting Reports ID by Technique name ---
 @function_tool
 async def get_reportsID_by_technique(technique: str):
-    """Find reports affected by a specific technique."""
+    """Finds the reports affected by a specific technique."""
     print("Technique : ", technique)
     conn = get_db_connection()
     cur = conn.cursor()
     try:
         cur.execute("SELECT report_id, technique_name FROM ttps WHERE technique_id ILIKE %s", (f"%{technique}%",))
         results = cur.fetchall()
+        print("Results from get_reportsID_by_technique : \n", results)
         if not results:
             return "No reports found for this technique."
         return str(results)
@@ -126,8 +127,8 @@ async def get_reportsID_by_technique(technique: str):
 
 # --- Tool 5: Getting reports by report ID ---
 @function_tool
-def get_reports_by_reportID(report_id: int):
-    """Find reports by report ID."""
+async def get_reports_by_reportID(report_id: int):
+    """Finds the report with a specific report ID."""
     conn = get_db_connection()
     cur = conn.cursor()
     try:
