@@ -103,6 +103,8 @@ async def handleChat(messages, history):
                                             res = "Error: Tool is not callable"
                                     except Exception as tool_err:
                                         res = f"Tool Execution Error: {tool_err}"
+                                    
+                                    tool_outputs.append(res)
                                 
                                 if call.get("name") == "search_by_victim":
                                     args = call.get("arguments", {})
@@ -113,6 +115,8 @@ async def handleChat(messages, history):
                                             res = "Error: Tool is not callable"
                                     except Exception as tool_err:
                                         res = f"Tool Execution Error: {tool_err}"
+                                    
+                                    tool_outputs.append(res)
                                 
                                 if call.get("name") == "get_reportsID_by_technique":
                                     args = call.get("arguments", {})
