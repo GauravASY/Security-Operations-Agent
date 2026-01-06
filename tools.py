@@ -65,7 +65,16 @@ def get_db_connection():
 # --- Tool 1: SQL Lookup for IoCs ---
 @function_tool
 async def search_indicators_by_report(report_id: int):
-    """Fetches all IoCs associated with a specific report ID."""
+    """
+    Fetches all Indicators of Compromise (IoCs) associated with a specific report.
+    
+    Args:
+        report_id (int): The unique identifier for the report.
+    
+    Returns:
+        str: JSON string containing a list of IoCs with their types and values,
+             or an error message if no indicators are found.
+    """
     conn = get_db_connection()
     cur = conn.cursor()
     try:
@@ -73,6 +82,10 @@ async def search_indicators_by_report(report_id: int):
         results = cur.fetchall()
         if not results:
             return "No indicators found for this report."
+        print("Inside search_indicators_by_report:\n")
+        for r in results:
+            print("type : ", r[0])
+            print("    value : \n", r[1])
         return json.dumps([{"type": r[0], "value": r[1]} for r in results])
     finally:
         conn.close()
@@ -81,12 +94,22 @@ async def search_indicators_by_report(report_id: int):
 # --- Tool 2: SQL Filtering by Sector ---
 @function_tool
 async def search_by_victim(sector: str):
-    """Finds the reports targeting a specific sector."""
+    """
+    Finds all reports targeting a specific victim sector.
+    
+    Args:
+        sector (str): The industry sector name (e.g., 'BFSI', 'Finance', 'Healthcare').
+    
+    Returns:
+        str: String representation of a list of tuples containing (report_id, filename, summary, created_at),
+             or an empty list if no matching reports are found.
+    """
     conn = get_db_connection()
     cur = conn.cursor()
     try:
         cur.execute("SELECT report_id, filename, summary, created_at FROM reports WHERE victim_sector ILIKE %s", (f"%{sector}%",))
         results = cur.fetchall()
+        print("Inside search_by_victim. Results:\n", results)
         return str(results)
     finally:
         conn.close()
@@ -94,16 +117,26 @@ async def search_by_victim(sector: str):
 # --- Tool 3: Getting File Content by File Name ---
 @function_tool
 async def get_file_content(filename: str):
-    """Fetches the content and summary of a specific file using filename."""
+    """
+    Fetches the raw content, summary, and report ID of a specific file.
+    
+    Args:
+        filename (str): The name of the file to retrieve (can include path, will extract basename).
+    
+    Returns:
+        tuple: A tuple containing (raw_content, summary, report_id),
+               or an error message if the file is not found.
+    """
     name = filename.split("\\")[-1]
     print("Filename : ", name)
     conn = get_db_connection()
     cur = conn.cursor()
     try:
-        cur.execute("SELECT raw_content, summary FROM reports WHERE filename = %s", (name,))
+        cur.execute("SELECT raw_content, summary, report_id FROM reports WHERE filename = %s", (name,))
         result = cur.fetchone()
         if not result:
             return "File not found."
+        print("Inside get_file_content. Result:\n", result)
         return result
     finally:
         conn.close()
@@ -111,7 +144,16 @@ async def get_file_content(filename: str):
 # --- Tool 4: Getting Reports ID by Technique name ---
 @function_tool
 async def get_reportsID_by_technique(technique: str):
-    """Finds the reports affected by a specific technique."""
+    """
+    Fetches all report IDs associated with a specific MITRE ATT&CK technique.
+    
+    Args:
+        technique (str): The MITRE ATT&CK technique ID (e.g., 'T1090', 'T1566') or technique name to search for.
+    
+    Returns:
+        str: A string representation of a list of tuples containing (report_id, technique_name) pairs,
+             or an error message if no reports are found.
+    """
     print("Technique : ", technique)
     conn = get_db_connection()
     cur = conn.cursor()
@@ -128,7 +170,16 @@ async def get_reportsID_by_technique(technique: str):
 # --- Tool 5: Getting reports by report ID ---
 @function_tool
 async def get_reports_by_reportID(report_id: int):
-    """Finds the report with a specific report ID."""
+    """
+    Fetches complete report details for a specific report ID.
+    
+    Args:
+        report_id (int): The unique identifier for the report.
+    
+    Returns:
+        tuple: A tuple containing all report fields from the database,
+               or an error message if the report is not found.
+    """
     conn = get_db_connection()
     cur = conn.cursor()
     try:
@@ -136,6 +187,7 @@ async def get_reports_by_reportID(report_id: int):
         result = cur.fetchone()
         if not result:
             return "Report not found."
+        print("Inside get_reports_by_reportID. Result:\n", result)
         return result
     finally:
         conn.close()
