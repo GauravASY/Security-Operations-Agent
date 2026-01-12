@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 from llmAgent import career_assistant
 from tools import get_file_content, search_indicators_by_report, search_by_victim, get_reportsID_by_technique, get_reports_by_reportID
-from vectorstore import ingest_txt
+from vectorstore import ingest_txt, ingest_pdf
 from utils import upload_file_to_s3
 from database import init_db
 import gradio as gr
@@ -44,7 +44,16 @@ async def handleChat(messages, history):
                         accumulated_response += f"```{result['message']}``` \n"
                     else:
                         accumulated_response += f"```{result['message']}``` \n"
-                    yield accumulated_response   
+                    yield accumulated_response  
+                
+                if file.endswith('.pdf'):
+                    s3_response = upload_file_to_s3(file, os.environ.get("S3_BUCKET_NAME"))
+                    result = await ingest_pdf(file, s3_response)
+                    if result['success']:
+                        accumulated_response += f"```{result['message']}``` \n"
+                    else:
+                        accumulated_response += f"```{result['message']}``` \n"
+                    yield accumulated_response  
             
         if len(messages['text']) > 0:
             for _ in range(max_turns):
@@ -163,13 +172,13 @@ async def main():
     init_db()
     gr.ChatInterface(
         fn=handleChat,
-        title="CERT SIEM POC v2.5",
+        title="Security Operations Agent Interface",
         autoscroll=True,
         fill_height=True,
         save_history=True,
         multimodal=True,
-        textbox=gr.MultimodalTextbox(file_count="multiple", file_types=[".txt"], sources=["upload"])
-    ).launch(footer_links=[])
+        textbox=gr.MultimodalTextbox(file_count="multiple", file_types=[".txt", ".pdf"], sources=["upload"])
+    ).launch(footer_links=[], theme=gr.themes.Citrus(primary_hue=gr.themes.colors.emerald, secondary_hue=gr.themes.colors.yellow))
         
 
 if __name__ == "__main__":
