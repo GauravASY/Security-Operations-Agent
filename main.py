@@ -65,7 +65,6 @@ async def handleChat(messages, history):
                             if event.type == "raw_response_event" and isinstance(event.data, ResponseTextDeltaEvent):
                                 chunk = event.data.delta
                                 full_turn_response += chunk
-                                yield accumulated_response + full_turn_response
                             
                             # Keep original event handling if needed, but we are primarily looking for the text response matching the tool call
                             if event.type == "run_item_output_event" and hasattr(event.data, 'output'):
@@ -86,8 +85,6 @@ async def handleChat(messages, history):
                         tool_calls = json.loads(possible_json)
                         if isinstance(tool_calls, list):
                             tool_calls_found = True
-                            accumulated_response += full_turn_response + "\n\n```Executing Tool...```\n\n"
-                            yield accumulated_response
                             
                             tool_outputs = []
                             for call in tool_calls:
@@ -160,6 +157,10 @@ async def handleChat(messages, history):
                     print(f"Error parsing tool call: {e}")
                 
                 if not tool_calls_found:
+                    # This is the final answer - stream it to the user
+                    for char in full_turn_response:
+                        accumulated_response += char
+                        yield accumulated_response
                     break
     except StopAsyncIteration:
         return
