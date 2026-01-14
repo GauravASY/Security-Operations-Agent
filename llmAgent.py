@@ -41,6 +41,15 @@ custom_model = OpenAIChatCompletionsModel(
     openai_client=custom_client,
     model=os.environ.get("LMAAS_MODEL"),
 )
+custom_client_ollama = AsyncOpenAI(
+    base_url="http://localhost:11434/v1",
+    api_key="ollama",  # required but unused
+)
+
+custom_model_ollama = OpenAIChatCompletionsModel(
+    openai_client=custom_client,
+    model="mistral-nemo",
+)
 
 extraction_assistant = Agent(
     name= "Extraction Agent",
@@ -53,13 +62,7 @@ extraction_assistant = Agent(
 career_assistant = Agent(
     name= "Gaurav",
     instructions= career_assistant_prompt,
-    handoffs=[
-        handoff(
-            agent=extraction_assistant,
-            tool_name_override="analyze_text_file",
-            on_handoff = log_analyses_handoff
-        )
-    ],
+    handoffs=[],
     model = custom_model,
     tools = [search_indicators_by_report, search_by_victim, get_file_content, get_reportsID_by_technique, get_reports_by_reportID]
 )
