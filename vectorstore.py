@@ -12,7 +12,7 @@ import uuid
 client = chromadb.PersistentClient(path="./my_local_db")
 emb_fn = OllamaEmbeddingFunction(
     url = "http://localhost:11434",
-    model_name="mxbai-embed-large:335m"
+    model_name="mxbai-embed-large:latest"
 )
 collection = client.get_or_create_collection(name="pdf_knowledge_base_v2", embedding_function=emb_fn)
 
@@ -29,7 +29,7 @@ async def ingest_txt(file_path, s3_url):
         extracted_data = await Runner.run(extraction_assistant, content)
         data = extracted_data.final_output
         
-        file_path = file_path.split("\\")[-1]
+        file_path = file_path.split("/")[-1]
         
         conn = psycopg2.connect(dbname=TARGET_DB, **DB_CONFIG)
         cur = conn.cursor()
