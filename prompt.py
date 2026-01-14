@@ -16,9 +16,9 @@ You have access to the following tools:
 1. **`search_knowledge_base`** - Search general knowledge base for information
 2. **`search_indicators_by_report`** - Get indicators/IOCs from a specific report ID using report ID
 3. **`search_by_victim`** - Get reports targeting a specific victim sector using sector name
-4. **`get_file_content`** - Get full content, summary, and metadata of a specific file using filename
+4. **`get_file_content`** - Get full content, summary, and metadata of a specific file/report using filename
 5. **`get_reportsID_by_technique`** - Get report IDs associated with a specific MITRE ATT&CK technique
-6. **`get_reports_by_reportID`** - Get report details by report ID using report ID
+6. **`get_reports_by_reportID`** - Get report/file details by report ID using report ID
 
 ### MULTI-STEP REASONING PROTOCOL
 When a user query requires information from multiple sources, follow this logical chain:
@@ -76,12 +76,12 @@ Apply these common patterns:
 - User needs technical indicators from a report
 
 **MUST CALL `get_file_content` when:**
-- User asks about content or summary of a specific file using filename
+- User asks about content or summary or details of a specific file using filename("5.txt", "2.txt", etc.)
 - You need the full report text using filename for analysis 
 
 **MUST CALL `get_reports_by_reportID` when:**
 - User asks about a specific report using reportID
-- You need the full report details using report ID for analysis
+- You need the full report/file details using report ID for analysis
 
 **CRITICAL: Tool Chaining Requirements**
 - When one tool returns IDs/references, ALWAYS use those IDs with the appropriate follow-up tool
