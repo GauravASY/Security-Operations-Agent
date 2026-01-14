@@ -56,7 +56,7 @@ async def handleChat(messages, history):
                     yield accumulated_response  
             
         if len(messages['text']) > 0:
-            for _ in range(max_turns):
+            for turn_num in range(max_turns):
                 full_turn_response = ""
                 try:
                     with trace('job assistant workflow'):
@@ -70,15 +70,30 @@ async def handleChat(messages, history):
                             if event.type == "run_item_output_event" and hasattr(event.data, 'output'):
                                 # Fallback if the runner actually handles it but yields output
                                 pass
+                    
+                    print(f"\n=== TURN {turn_num} DEBUG ===")
+                    print(f"full_turn_response length: {len(full_turn_response)}")
+                    print(f"full_turn_response content: {full_turn_response[:500] if full_turn_response else 'EMPTY'}")
+                    print("=== END DEBUG ===\n")
                                 
                 except Exception as e:
-                    yield f"Unexpected exception occured \n{e}"
+                    accumulated_response += f"\nUnexpected exception occurred: {e}"
+                    yield accumulated_response
                     return
+
+                # Handle empty response (can happen between tool calls)
+                if not full_turn_response or len(full_turn_response.strip()) == 0:
+                    print(f"WARNING: Turn {turn_num} returned empty response. Ending conversation.")
+                    # If we have accumulated response, yield it; otherwise yield a default message
+                    if not accumulated_response:
+                        accumulated_response = "Processing completed."
+                    yield accumulated_response
+                    break
 
                 # Check if response is a tool call (JSON list)
                 tool_calls_found = False
                 try:
-                    match = re.search(r'(\[.*"get_file_content".*\]|\[.*"search_indicators_by_report".*\]|\[.*"search_by_victim".*\]|\[.*"get_reportsID_by_technique".*\]|\[.*"get_reports_by_reportID".*\])', full_turn_response, re.DOTALL)
+                    match = re.search(r'(\[.*?"get_file_content".*?\]|\[.*?"search_indicators_by_report".*?\]|\[.*?"search_by_victim".*?\]|\[.*?"get_reportsID_by_technique".*?\]|\[.*?"get_reports_by_reportID".*?\])', full_turn_response, re.DOTALL)
                     
                     if match:
                         possible_json = match.group(1)
@@ -148,8 +163,35 @@ async def handleChat(messages, history):
                                     
                                     tool_outputs.append(res)
                 
+                            # Helper function to format tool outputs in a readable way
+                            def format_tool_output(output):
+                                if isinstance(output, tuple):
+                                    # Handle database tuple results
+                                    if len(output) == 3:
+                                        # Likely (content, summary, id) from get_file_content
+                                        return f"Content: {output[0]}\nSummary: {output[1]}\nReport ID: {output[2]}"
+                                    else:
+                                        return str(output)
+                                elif isinstance(output, list):
+                                    return json.dumps(output, indent=2)
+                                else:
+                                    return str(output)
+                            
                             conversation_chain.append({"role": "assistant", "content": full_turn_response})
-                            conversation_chain.append({"role": "user", "content": f"Tool Output: {json.dumps(tool_outputs)}"})
+                            # Format tool outputs more clearly for the agent
+                            tool_result_message = "The tools have been executed successfully. Here are the results:\n\n"
+                            for i, output in enumerate(tool_outputs):
+                                formatted_output = format_tool_output(output)
+                                tool_result_message += f"Result {i+1}:\n{formatted_output}\n\n"
+                            tool_result_message += "Now please synthesize these results and provide a complete answer to the user. DO NOT call the tools again."
+                            
+                            print(f"\n=== TOOL RESULT MESSAGE ===")
+                            print(tool_result_message[:500])
+                            print("=== END TOOL RESULT ===\n")
+                            
+                            conversation_chain.append({"role": "user", "content": tool_result_message})
+                            # Continue to next turn to let agent process tool outputs
+                            continue
                             
                 except json.JSONDecodeError:
                     pass
@@ -158,15 +200,27 @@ async def handleChat(messages, history):
                 
                 if not tool_calls_found:
                     # This is the final answer - stream it to the user
-                    for char in full_turn_response:
-                        accumulated_response += char
+                    if full_turn_response:
+                        for char in full_turn_response:
+                            accumulated_response += char
+                            yield accumulated_response
+                    else:
+                        # Edge case: no tool calls but also no content
+                        if not accumulated_response:
+                            accumulated_response = "Processing completed."
                         yield accumulated_response
                     break
     except StopAsyncIteration:
+        # Always yield something before returning to prevent RuntimeError
+        if accumulated_response:
+            yield accumulated_response
+        else:
+            yield "Processing completed."
         return
     except Exception as e:
         traceback.print_exc()
-        yield f"Unexpected Critical Error: {e}"
+        accumulated_response += f"\nUnexpected Critical Error: {e}"
+        yield accumulated_response
 
 
 async def main():
